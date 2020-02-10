@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>kubernetes集群部署(二):etcd集群 | periky&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="安装etcd服务12345wget https:&#x2F;&#x2F;github.com&#x2F;etcd-io&#x2F;etcd&#x2F;releases&#x2F;download&#x2F; \    v3.3.17&#x2F;etcd-v3.3.18-linux-arm64.tar.gztar xf etcd-v3.3.17-linux-amd64.tar.gzcd etcd-v">
+<meta property="og:type" content="article">
+<meta property="og:title" content="kubernetes集群部署(二):etcd集群">
+<meta property="og:url" content="https://periky.github.io/2020/02/08/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%BA%8C):etcd%E9%9B%86%E7%BE%A4/index.html">
+<meta property="og:site_name" content="periky&#39;s blog">
+<meta property="og:description" content="安装etcd服务12345wget https:&#x2F;&#x2F;github.com&#x2F;etcd-io&#x2F;etcd&#x2F;releases&#x2F;download&#x2F; \    v3.3.17&#x2F;etcd-v3.3.18-linux-arm64.tar.gztar xf etcd-v3.3.17-linux-amd64.tar.gzcd etcd-v">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-02-08T15:08:52.000Z">
+<meta property="article:modified_time" content="2020-02-09T12:51:12.164Z">
+<meta property="article:author" content="periky">
+<meta property="article:tag" content="kubernetes">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="periky&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">periky&#39;s blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">学无止境</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://periky.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-kubernetes集群部署(二):etcd集群" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/02/08/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%BA%8C):etcd%E9%9B%86%E7%BE%A4/" class="article-date">
+  <time datetime="2020-02-08T15:08:52.000Z" itemprop="datePublished">2020-02-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      kubernetes集群部署(二):etcd集群
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="安装etcd服务"><a href="#安装etcd服务" class="headerlink" title="安装etcd服务"></a>安装etcd服务</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">wget https:&#x2F;&#x2F;github.com&#x2F;etcd-io&#x2F;etcd&#x2F;releases&#x2F;download&#x2F; \</span><br><span class="line">    v3.3.17&#x2F;etcd-v3.3.18-linux-arm64.tar.gz</span><br><span class="line">tar xf etcd-v3.3.17-linux-amd64.tar.gz</span><br><span class="line">cd etcd-v3.3.17-linux-amd64</span><br><span class="line">mv etcd* &#x2F;usr&#x2F;bin&#x2F;</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<br/>
+<br/>
+
+<h2 id="单节点部署"><a href="#单节点部署" class="headerlink" title="单节点部署"></a>单节点部署</h2><h6 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># etho是网卡名称</span><br><span class="line">node_ip&#x3D;$(ifconfig etho | grep inet | grep -v inet6 | awk &#39;&#123;print $2&#125;&#39;)</span><br><span class="line">cat &lt;&lt; EOF | tee &#x2F;etc&#x2F;etcd&#x2F;etcd.conf</span><br><span class="line">ETCD_NAME&#x3D;&quot;etcd01&quot;</span><br><span class="line">ETCD_DATA_DIR&#x3D;&quot;&#x2F;var&#x2F;lib&#x2F;etcd&quot;</span><br><span class="line">ETCD_LISTEN_PEER_URLS&#x3D;&quot;http:&#x2F;&#x2F;$&#123;node_ip&#125;:2380&quot;</span><br><span class="line">ETCD_LISTEN_CLIENT_URLS&#x3D;&quot;http:&#x2F;&#x2F;$&#123;node_ip&#125;:2379&quot;</span><br><span class="line">ETCD_ADVERTISE_CLIENT_URLS&#x3D;&quot;http:&#x2F;&#x2F;$&#123;node_ip&#125;:2379&quot;</span><br></pre></td></tr></table></figure>
+
+
+<h6 id="systemctl-service文件"><a href="#systemctl-service文件" class="headerlink" title="systemctl service文件"></a>systemctl service文件</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt; \EOF | tee &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;etcd.service</span><br><span class="line">[Unit]</span><br><span class="line">Description&#x3D;Etcd Server</span><br><span class="line">After&#x3D;network.target</span><br><span class="line">After&#x3D;network-online.target</span><br><span class="line">Wants&#x3D;network-online.target</span><br><span class="line">[Service]</span><br><span class="line">Type&#x3D;notify</span><br><span class="line">EnvironmentFile&#x3D;&#x2F;etc&#x2F;etcd&#x2F;etcd.conf</span><br><span class="line">ExecStart&#x3D;&#x2F;usr&#x2F;bin&#x2F;etcd \</span><br><span class="line">--name&#x3D;$&#123;ETCD_NAME&#125; \</span><br><span class="line">--data-dir&#x3D;$&#123;ETCD_DATA_DIR&#125; \</span><br><span class="line">--listen-peer-urls&#x3D;$&#123;ETCD_LISTEN_PEER_URLS&#125; \</span><br><span class="line">--listen-client-urls&#x3D;$&#123;ETCD_LISTEN_CLIENT_URLS&#125;,http:&#x2F;&#x2F;127.0.0.1:2379 \</span><br><span class="line">--advertise-client-urls&#x3D;$&#123;ETCD_ADVERTISE_CLIENT_URLS&#125; \</span><br><span class="line">Restart&#x3D;on-failure</span><br><span class="line">LimitNOFILE&#x3D;65536</span><br><span class="line">[Install]</span><br><span class="line">WantedBy&#x3D;multi-user.target</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<br/>
+<br/>
+
+<h2 id="etcd集群"><a href="#etcd集群" class="headerlink" title="etcd集群"></a>etcd集群</h2><h6 id="配置文件-1"><a href="#配置文件-1" class="headerlink" title="配置文件"></a>配置文件</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># master结点的IP地址</span><br><span class="line">master_ip&#x3D;&quot;10.0.2.15&quot;</span><br><span class="line"># etho是网卡名称, node_ip是etcd结点的IP地址</span><br><span class="line">node_ip&#x3D;$(ifconfig etho | grep inet | grep -v inet6 | awk &#39;&#123;print $2&#125;&#39;)</span><br><span class="line"></span><br><span class="line">cat &lt;&lt; EOF | tee &#x2F;etc&#x2F;etcd&#x2F;etcd.conf</span><br><span class="line">ETCD_NAME&#x3D;&quot;etcd01&quot;　# &#123;etcd01, etcd02, etcd03&#125;, 结点名称</span><br><span class="line">ETCD_DATA_DIR&#x3D;&quot;&#x2F;var&#x2F;lib&#x2F;etcd&quot;</span><br><span class="line">ETCD_LISTEN_PEER_URLS&#x3D;&quot;http:&#x2F;&#x2F;$&#123;node_ip&#125;:2380&quot;</span><br><span class="line">ETCD_LISTEN_CLIENT_URLS&#x3D;&quot;http:&#x2F;&#x2F;$&#123;node_ip&#125;:2379&quot;</span><br><span class="line">ETCD_ADVERTISE_CLIENT_URLS&#x3D;&quot;http:&#x2F;&#x2F;$&#123;node_ip&#125;:2379&quot;</span><br><span class="line">ETCD_INITIAL_ADVERTISE_PEER_URLS&#x3D;&quot;https:&#x2F;&#x2F;$&#123;node_ip&#125;:2380&quot;</span><br><span class="line"># node&#123;num&#125;_ip是每个结点的IP地址</span><br><span class="line">ETCD_INITIAL_CLUSTER&#x3D;&quot;etcd01&#x3D;https:&#x2F;&#x2F;$&#123;master_ip&#125;:2380,\</span><br><span class="line">    etcd02&#x3D;https:&#x2F;&#x2F;$&#123;node1_ip&#125;:2380,etcd03&#x3D;https:&#x2F;&#x2F;$&#123;node2_ip&#125;:2380&quot;</span><br><span class="line">ETCD_INITIAL_CLUSTER_TOKEN&#x3D;&quot;etcd-cluster&quot;</span><br><span class="line">ETCD_INITIAL_CLUSTER_STATE&#x3D;&quot;new&quot;</span><br></pre></td></tr></table></figure>
+
+<h6 id="systemctl-service文件-1"><a href="#systemctl-service文件-1" class="headerlink" title="systemctl service文件"></a>systemctl service文件</h6><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt; \EOF | tee &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;etcd.service</span><br><span class="line">[Unit]</span><br><span class="line">Description&#x3D;Etcd Server</span><br><span class="line">After&#x3D;network.target</span><br><span class="line">After&#x3D;network-online.target</span><br><span class="line">Wants&#x3D;network-online.target</span><br><span class="line">[Service]</span><br><span class="line">Type&#x3D;notify</span><br><span class="line">EnvironmentFile&#x3D;&#x2F;etc&#x2F;etcd&#x2F;etcd.conf</span><br><span class="line">ExecStart&#x3D;&#x2F;usr&#x2F;bin&#x2F;etcd \</span><br><span class="line">--name&#x3D;$&#123;ETCD_NAME&#125; \</span><br><span class="line">--data-dir&#x3D;$&#123;ETCD_DATA_DIR&#125; \</span><br><span class="line">--listen-peer-urls&#x3D;$&#123;ETCD_LISTEN_PEER_URLS&#125; \</span><br><span class="line">--listen-client-urls&#x3D;$&#123;ETCD_LISTEN_CLIENT_URLS&#125;,http:&#x2F;&#x2F;127.0.0.1:2379 \</span><br><span class="line">--advertise-client-urls&#x3D;$&#123;ETCD_ADVERTISE_CLIENT_URLS&#125; \</span><br><span class="line">--initial-advertise-peer-urls&#x3D;$&#123;ETCD_INITIAL_ADVERTISE_PEER_URLS&#125; \</span><br><span class="line">--initial-cluster&#x3D;$&#123;ETCD_INITIAL_CLUSTER&#125; \</span><br><span class="line">--initial-cluster-token&#x3D;$&#123;ETCD_INITIAL_CLUSTER_TOKEN&#125; \</span><br><span class="line">--initial-cluster-state&#x3D;new</span><br><span class="line">Restart&#x3D;on-failure</span><br><span class="line">LimitNOFILE&#x3D;65536</span><br><span class="line">[Install]</span><br><span class="line">WantedBy&#x3D;multi-user.target</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<br/>
+<br/>
+
+<h2 id="etcd之HTTPS"><a href="#etcd之HTTPS" class="headerlink" title="etcd之HTTPS"></a>etcd之HTTPS</h2><p><em>购买证书或者自制私有证书,使etcd支持https方式访问</em></p>
+<h5 id="安装配置CFSSL"><a href="#安装配置CFSSL" class="headerlink" title="安装配置CFSSL"></a>安装配置CFSSL</h5><p><em>创建证书工具,用于提供https服务, 只需要在master结点上安装</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wget https:&#x2F;&#x2F;pkg.cfssl.org&#x2F;R1.2&#x2F;cfssl_linux-amd64</span><br><span class="line">wget https:&#x2F;&#x2F;pkg.cfssl.org&#x2F;R1.2&#x2F;cfssljson_linux-amd64</span><br><span class="line">wget https:&#x2F;&#x2F;pkg.cfssl.org&#x2F;R1.2&#x2F;cfssl-certinfo_linux-amd64</span><br><span class="line">chmod +x cfssl_linux-amd64 cfssljson_linux-amd64 cfssl-certinfo_linux-amd64</span><br><span class="line">mv cfssl_linux-amd64 &#x2F;usr&#x2F;local&#x2F;bin&#x2F;cfssl</span><br><span class="line">mv cfssljson_linux-amd64 &#x2F;usr&#x2F;local&#x2F;bin&#x2F;cfssljson</span><br><span class="line">mv cfssl-certinfo_linux-amd64 &#x2F;usr&#x2F;bin&#x2F;cfssl-certinfo</span><br></pre></td></tr></table></figure>
+
+<h5 id="创建证书"><a href="#创建证书" class="headerlink" title="创建证书"></a>创建证书</h5><p><strong>生成根证书</strong></p>
+<p><em>只需在master结点上生成ca证书,然后同步至node结点中</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">cat &lt;&lt; EOF | tee ca-config.json</span><br><span class="line">&#123;</span><br><span class="line">  &quot;signing&quot;: &#123;</span><br><span class="line">    &quot;default&quot;: &#123;</span><br><span class="line">      &quot;expiry&quot;: &quot;87600h&quot;</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;profiles&quot;: &#123;</span><br><span class="line">      &quot;www&quot;: &#123;</span><br><span class="line">         &quot;expiry&quot;: &quot;87600h&quot;,</span><br><span class="line">         &quot;usages&quot;: [</span><br><span class="line">            &quot;signing&quot;,</span><br><span class="line">            &quot;key encipherment&quot;,</span><br><span class="line">            &quot;server auth&quot;,</span><br><span class="line">            &quot;client auth&quot;</span><br><span class="line">        ]</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"># etcd ca配置文件</span><br><span class="line">cat &lt;&lt; EOF | tee ca-csr.json</span><br><span class="line">&#123;</span><br><span class="line">    &quot;CN&quot;: &quot;etcd CA&quot;,</span><br><span class="line">    &quot;key&quot;: &#123;</span><br><span class="line">        &quot;algo&quot;: &quot;rsa&quot;,</span><br><span class="line">        &quot;size&quot;: 2048</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;names&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;C&quot;: &quot;CN&quot;,</span><br><span class="line">            &quot;L&quot;: &quot;Shanghai&quot;,</span><br><span class="line">            &quot;ST&quot;: &quot;Shanghai&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"># etcd server证书</span><br><span class="line"># hosts是etcd结点ip列表</span><br><span class="line">cat &lt;&lt; EOF | tee server-csr.json</span><br><span class="line">&#123;</span><br><span class="line">    &quot;CN&quot;: &quot;etcd&quot;,</span><br><span class="line">    &quot;hosts&quot;: [</span><br><span class="line">        &quot;10.0.2.15&quot;,</span><br><span class="line">        &quot;10.0.2.4&quot;,</span><br><span class="line">        &quot;10.0.2.5&quot;</span><br><span class="line">    ],</span><br><span class="line">    &quot;key&quot;: &#123;</span><br><span class="line">        &quot;algo&quot;: &quot;rsa&quot;,</span><br><span class="line">        &quot;size&quot;: 2048</span><br><span class="line">    &#125;,</span><br><span class="line">    &quot;names&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">            &quot;C&quot;: &quot;CN&quot;,</span><br><span class="line">            &quot;L&quot;: &quot;Shanghai&quot;,</span><br><span class="line">            &quot;ST&quot;: &quot;Shanghai&quot;</span><br><span class="line">        &#125;</span><br><span class="line">    ]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">cfssl gencert -initca ca-csr.json | cfssljson -bare ca -</span><br><span class="line">cfssl gencert -ca&#x3D;ca.pem \</span><br><span class="line">    -ca-key&#x3D;ca-key.pem -config&#x3D;ca-config.json \</span><br><span class="line">    -profile&#x3D;www server-csr.json | cfssljson -bare server</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="配置证书"><a href="#配置证书" class="headerlink" title="配置证书"></a>配置证书</h5><p><em>更新完master结点的service文件之后，同步到node结点</em></p>
+<p>编辑文件,<code>vim /lib/systemd/system/etcd.service</code>,在ExecStart指令后面添加如下启动参数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">--cert-file&#x3D;&#x2F;etc&#x2F;etcd&#x2F;ssl&#x2F;server.pem \</span><br><span class="line">--key-file&#x3D;&#x2F;etc&#x2F;etcd&#x2F;ssl&#x2F;server-key.pem \</span><br><span class="line">--peer-cert-file&#x3D;&#x2F;etc&#x2F;etcd&#x2F;ssl&#x2F;server.pem \</span><br><span class="line">--peer-key-file&#x3D;&#x2F;etc&#x2F;etcd&#x2F;ssl&#x2F;server-key.pem \</span><br><span class="line">--trusted-ca-file&#x3D;&#x2F;etc&#x2F;etcd&#x2F;ssl&#x2F;ca.pem \</span><br><span class="line">--peer-trusted-ca-file&#x3D;&#x2F;etc&#x2F;etcd&#x2F;ssl&#x2F;ca.pem</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="服务健康检测"><a href="#服务健康检测" class="headerlink" title="服务健康检测"></a>服务健康检测</h2><p><em>默认检测的endpoint是<a href="http://0.0.0.0:2379" target="_blank" rel="noopener">http://0.0.0.0:2379</a></em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">etcdctl cluster-health</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://periky.github.io/2020/02/08/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%BA%8C):etcd%E9%9B%86%E7%BE%A4/" data-id="ck6gf88yy00044ujg7qj8273o" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%89):flannel/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          kubernetes集群部署(三):flannel集群
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/02/05/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%80):%E6%9C%BA%E5%99%A8%E5%88%9D%E5%A7%8B%E5%8C%96/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kubernetes集群部署(一):初始化</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/django/" rel="tag">django</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/django/" style="font-size: 10px;">django</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">February 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E5%9B%9B):k8s%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2/">kubernetes机器部署(四):k8s集群部署</a>
+          </li>
+        
+          <li>
+            <a href="/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%89):flannel/">kubernetes集群部署(三):flannel集群</a>
+          </li>
+        
+          <li>
+            <a href="/2020/02/08/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%BA%8C):etcd%E9%9B%86%E7%BE%A4/">kubernetes集群部署(二):etcd集群</a>
+          </li>
+        
+          <li>
+            <a href="/2020/02/05/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%80):%E6%9C%BA%E5%99%A8%E5%88%9D%E5%A7%8B%E5%8C%96/">kubernetes集群部署(一):初始化</a>
+          </li>
+        
+          <li>
+            <a href="/2020/02/04/django%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%80):%E4%BB%8E%E8%AF%B7%E6%B1%82%E5%88%B0%E5%93%8D%E5%BA%94/">django源码阅读(一):从请求到响应</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 periky<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
