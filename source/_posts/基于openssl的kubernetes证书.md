@@ -1,7 +1,7 @@
 ---
 title: 基于openssl的kubernetes证书
 date: 2020-02-11 12:49:10
-tags: kubernetes, openssl
+tags: [kubernetes, openssl]
 ---
 
 # kube-apiserver的CA证书
