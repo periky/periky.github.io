@@ -70,6 +70,49 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-基于openssl的kubernetes证书" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/02/11/%E5%9F%BA%E4%BA%8Eopenssl%E7%9A%84kubernetes%E8%AF%81%E4%B9%A6/" class="article-date">
+  <time datetime="2020-02-11T04:49:10.000Z" itemprop="datePublished">2020-02-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/02/11/%E5%9F%BA%E4%BA%8Eopenssl%E7%9A%84kubernetes%E8%AF%81%E4%B9%A6/">基于openssl的kubernetes证书</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="kube-apiserver的CA证书"><a href="#kube-apiserver的CA证书" class="headerlink" title="kube-apiserver的CA证书"></a>kube-apiserver的CA证书</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out ca.key 2048</span><br><span class="line">openssl req -x509 -new -nodes -key ca.key -subj &quot;&#x2F;CN&#x3D;&lt;master_hostname&gt;&quot; \</span><br><span class="line">    -days 5000 -out ca.crt</span><br><span class="line">openssl genrsa -out server.key 2048</span><br></pre></td></tr></table></figure>
+        
+          <p class="article-more-link">
+            <a href="/2020/02/11/%E5%9F%BA%E4%BA%8Eopenssl%E7%9A%84kubernetes%E8%AF%81%E4%B9%A6/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://periky.github.io/2020/02/11/%E5%9F%BA%E4%BA%8Eopenssl%E7%9A%84kubernetes%E8%AF%81%E4%B9%A6/" data-id="ck6hf62wa000d2zjg96k1co5o" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes-openssl/" rel="tag">kubernetes, openssl</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-kubernetes集群部署(四):k8s集群部署" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E5%9B%9B):k8s%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2/" class="article-date">
@@ -103,7 +146,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://periky.github.io/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E5%9B%9B):k8s%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2/" data-id="ck6gfzjzw0005k8jg7tgddxem" class="article-share-link">Share</a>
+      <a data-url="https://periky.github.io/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E5%9B%9B):k8s%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2/" data-id="ck6hf62w8000c2zjgbhcr9j9r" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
@@ -147,7 +190,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://periky.github.io/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%89):flannel/" data-id="ck6gfzjzt0003k8jg1pr7bci9" class="article-share-link">Share</a>
+      <a data-url="https://periky.github.io/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%89):flannel/" data-id="ck6hf62v200032zjg1h0r8o51" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
@@ -190,7 +233,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://periky.github.io/2020/02/08/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%BA%8C):etcd%E9%9B%86%E7%BE%A4/" data-id="ck6gfzjzv0004k8jg54g7hsxg" class="article-share-link">Share</a>
+      <a data-url="https://periky.github.io/2020/02/08/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%BA%8C):etcd%E9%9B%86%E7%BE%A4/" data-id="ck6hf62v300042zjgg9zxeggt" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
@@ -234,7 +277,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://periky.github.io/2020/02/05/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%80):%E6%9C%BA%E5%99%A8%E5%88%9D%E5%A7%8B%E5%8C%96/" data-id="ck6gfzjzp0001k8jg800i1m73" class="article-share-link">Share</a>
+      <a data-url="https://periky.github.io/2020/02/05/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%80):%E6%9C%BA%E5%99%A8%E5%88%9D%E5%A7%8B%E5%8C%96/" data-id="ck6hf62uz00012zjg2pir5no8" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
@@ -272,7 +315,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://periky.github.io/2020/02/04/django%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%80):%E4%BB%8E%E8%AF%B7%E6%B1%82%E5%88%B0%E5%93%8D%E5%BA%94/" data-id="ck6gfzjzi0000k8jg080shpy1" class="article-share-link">Share</a>
+      <a data-url="https://periky.github.io/2020/02/04/django%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%80):%E4%BB%8E%E8%AF%B7%E6%B1%82%E5%88%B0%E5%93%8D%E5%BA%94/" data-id="ck6hf62ut00002zjgecn2bcj6" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/django/" rel="tag">django</a></li></ul>
@@ -297,7 +340,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/django/" rel="tag">django</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/django/" rel="tag">django</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes-openssl/" rel="tag">kubernetes, openssl</a></li></ul>
     </div>
   </div>
 
@@ -307,7 +350,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/django/" style="font-size: 10px;">django</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a>
+      <a href="/tags/django/" style="font-size: 10px;">django</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/kubernetes-openssl/" style="font-size: 10px;">kubernetes, openssl</a>
     </div>
   </div>
 
@@ -329,6 +372,10 @@
       <ul>
         
           <li>
+            <a href="/2020/02/11/%E5%9F%BA%E4%BA%8Eopenssl%E7%9A%84kubernetes%E8%AF%81%E4%B9%A6/">基于openssl的kubernetes证书</a>
+          </li>
+        
+          <li>
             <a href="/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E5%9B%9B):k8s%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2/">kubernetes机器部署(四):k8s集群部署</a>
           </li>
         
@@ -342,10 +389,6 @@
         
           <li>
             <a href="/2020/02/05/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%80):%E6%9C%BA%E5%99%A8%E5%88%9D%E5%A7%8B%E5%8C%96/">kubernetes集群部署(一):初始化</a>
-          </li>
-        
-          <li>
-            <a href="/2020/02/04/django%E6%BA%90%E7%A0%81%E9%98%85%E8%AF%BB(%E4%B8%80):%E4%BB%8E%E8%AF%B7%E6%B1%82%E5%88%B0%E5%93%8D%E5%BA%94/">django源码阅读(一):从请求到响应</a>
           </li>
         
       </ul>

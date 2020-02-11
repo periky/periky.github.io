@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>基于openssl的kubernetes证书 | periky&#39;s blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="kube-apiserver的CA证书1234openssl genrsa -out ca.key 2048openssl req -x509 -new -nodes -key ca.key -subj &quot;&#x2F;CN&#x3D;&lt;master_hostname&gt;&quot; \    -days 5000 -out ca.crtopenssl genrsa -out s">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于openssl的kubernetes证书">
+<meta property="og:url" content="https://periky.github.io/2020/02/11/%E5%9F%BA%E4%BA%8Eopenssl%E7%9A%84kubernetes%E8%AF%81%E4%B9%A6/index.html">
+<meta property="og:site_name" content="periky&#39;s blog">
+<meta property="og:description" content="kube-apiserver的CA证书1234openssl genrsa -out ca.key 2048openssl req -x509 -new -nodes -key ca.key -subj &quot;&#x2F;CN&#x3D;&lt;master_hostname&gt;&quot; \    -days 5000 -out ca.crtopenssl genrsa -out s">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-02-11T04:49:10.000Z">
+<meta property="article:modified_time" content="2020-02-11T04:48:59.824Z">
+<meta property="article:author" content="periky">
+<meta property="article:tag" content="kubernetes, openssl">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="periky&#39;s blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">periky&#39;s blog</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">学无止境</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://periky.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-基于openssl的kubernetes证书" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/02/11/%E5%9F%BA%E4%BA%8Eopenssl%E7%9A%84kubernetes%E8%AF%81%E4%B9%A6/" class="article-date">
+  <time datetime="2020-02-11T04:49:10.000Z" itemprop="datePublished">2020-02-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      基于openssl的kubernetes证书
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="kube-apiserver的CA证书"><a href="#kube-apiserver的CA证书" class="headerlink" title="kube-apiserver的CA证书"></a>kube-apiserver的CA证书</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out ca.key 2048</span><br><span class="line">openssl req -x509 -new -nodes -key ca.key -subj &quot;&#x2F;CN&#x3D;&lt;master_hostname&gt;&quot; \</span><br><span class="line">    -days 5000 -out ca.crt</span><br><span class="line">openssl genrsa -out server.key 2048</span><br></pre></td></tr></table></figure>
+
+<a id="more"></a>
+
+<p><em>master_ssl.cnf</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[req]</span><br><span class="line">req_extensions &#x3D; v3_req</span><br><span class="line">distinguished_name &#x3D; req_distinguished_name</span><br><span class="line">[req_distinguished_name]</span><br><span class="line">[ v3_req ]</span><br><span class="line">basicConstraints &#x3D; CA:FALSE</span><br><span class="line">keyUsage &#x3D; nonRepudiation, digitalSignature, keyEncipherment</span><br><span class="line">subjectAltName &#x3D; @alt_names</span><br><span class="line">[alt_names]</span><br><span class="line">DNS.1 &#x3D; kubernetes</span><br><span class="line">DNS.2 &#x3D; kubernetes.default</span><br><span class="line">DNS.3 &#x3D; kubernetes.default.svc</span><br><span class="line">DNS.4 &#x3D; kubernetes.default.svc.cluster.local</span><br><span class="line">DNS.5 &#x3D; &lt;master_hostname&gt;</span><br><span class="line">IP.1 &#x3D; &lt;master_ip&gt;</span><br><span class="line">IP.3 &#x3D; &lt;kubectl get svc | grep kubernetes | awk &#39;&#123;print $3&#125;&#39;&gt;集群IP</span><br></pre></td></tr></table></figure>
+
+<p><strong>基于master_ssl.conf创建server.csr和server.crt文件</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">openssl req -new -key server.key -subj &quot;&#x2F;CN&#x3D;&lt;master_hostname&gt;&quot; -config \</span><br><span class="line">master_ssl.cnf -out server.csr</span><br><span class="line">openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial \</span><br><span class="line">-days 5000 -extensions v3_req -extfile master_ssl.cnf -out server.crt</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>kube-apiserver启动参数</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">--client-ca-file&#x3D;&lt;ca_dir&gt;&#x2F;ca.crt</span><br><span class="line">--tls-private-key-file&#x3D;&lt;ca_dir&gt;&#x2F;server.key</span><br><span class="line">--tls-cert-file&#x3D;&lt;ca_dir&gt;&#x2F;server.crt</span><br><span class="line">--insecure-port&#x3D;0</span><br><span class="line">--secure-port&#x3D;6443</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="kube-controller-manager证书"><a href="#kube-controller-manager证书" class="headerlink" title="kube-controller-manager证书"></a>kube-controller-manager证书</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out cs_client.key 2048</span><br><span class="line">openssl req -new -key ca.key -subj &quot;&#x2F;CN&#x3D;&lt;master_hostname&gt;&quot; -out cs_client.csr</span><br><span class="line">openssl x509 -req -in cs_client.csr -CA ca.crt -CAkey ca.key -CAcreateserial \</span><br><span class="line">-out cs_client.crt -days 5000</span><br></pre></td></tr></table></figure>
+
+<p><em>controller-manager.kubeconfig</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Config</span><br><span class="line">users:</span><br><span class="line">- name: controllermanager</span><br><span class="line">  user:</span><br><span class="line">    client-certificate: &lt;ca_dir&gt;&#x2F;cs_client.crt</span><br><span class="line">    client-key: &lt;ca_dir&gt;&#x2F;cs_client.key</span><br><span class="line">clusters:</span><br><span class="line">- name: local</span><br><span class="line">  cluster:</span><br><span class="line">    certificate-authority: &lt;ca_dir&gt;&#x2F;ca.crt</span><br><span class="line">    server: https:&#x2F;&#x2F;&lt;apiserver_ip&gt;:6443</span><br><span class="line">contexts:</span><br><span class="line">- context:</span><br><span class="line">    cluster: local</span><br><span class="line">    user: controllermanager</span><br><span class="line">  name: my-context</span><br><span class="line">current-context: my-context</span><br></pre></td></tr></table></figure>
+
+<p><em>kube-controller-manger服务的启动参数</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">--service-account-key-file&#x3D;&lt;ca_dir&gt;&#x2F;server.key</span><br><span class="line">--root-ca-file&#x3D;&lt;ca_dir&gt;&#x2F;ca.crt</span><br><span class="line">--kubeconfig&#x3D;controller-manager.kubeconfig</span><br></pre></td></tr></table></figure>
+
+<h1 id="kube-scheduler"><a href="#kube-scheduler" class="headerlink" title="kube-scheduler"></a>kube-scheduler</h1><p><em>启动参数</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--kubeconfig&#x3D;controller-manager.kubeconfig</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="kubelet证书"><a href="#kubelet证书" class="headerlink" title="kubelet证书"></a>kubelet证书</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">openssl genrsa -out kubelet_client.key 2048</span><br><span class="line">openssl req -new -key kubelet_client.key -subj &quot;&#x2F;CN&#x3D;&lt;node_hostname&gt;&quot; -out \</span><br><span class="line">kubele_client.csr</span><br><span class="line">openssl x509 -req -in kubelet_client.csr -CA ca.crt -CAkey ca.key \</span><br><span class="line">-CAcreateserial -out kubelet_client.cet -days 5000</span><br></pre></td></tr></table></figure>
+
+<p><em>kubelet.kubeconfig</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: v1</span><br><span class="line">kind: Config</span><br><span class="line">users:</span><br><span class="line">- name: kubelet</span><br><span class="line">  user: </span><br><span class="line">    client-certificate: &lt;ca_dir&gt;&#x2F;kubelet_client.crt</span><br><span class="line">    client-key: &lt;ca_dir&gt;&#x2F;kubelet_client.key</span><br><span class="line">clusters:</span><br><span class="line">- name: local</span><br><span class="line">  cluster:</span><br><span class="line">    certificate-authority: &lt;ca_dir&gt;&#x2F;ca.crt</span><br><span class="line">    server: https:&#x2F;&#x2F;&lt;api_server&gt;:6443</span><br><span class="line">contexts:</span><br><span class="line">- context:</span><br><span class="line">    cluster: local</span><br><span class="line">    user: kubelet</span><br><span class="line">  name: my-context</span><br><span class="line">current-context: my-context</span><br></pre></td></tr></table></figure>
+
+<p><strong>kubelet服务启动参数</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--kubeconfig&#x3D;kubelet.kubeconfig</span><br></pre></td></tr></table></figure>
+
+<h1 id="kube-proxy"><a href="#kube-proxy" class="headerlink" title="kube-proxy"></a>kube-proxy</h1><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--kubeconfig&#x3D;kubelet.kubeconfig</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="kubectl"><a href="#kubectl" class="headerlink" title="kubectl"></a>kubectl</h1><p><em>安全访问apiserver</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">kubectl --server&#x3D;https:&#x2F;&#x2F;&lt;apiserver&gt;:6443 \</span><br><span class="line">--certificate-authority&#x3D;&lt;ca_dir&gt;&#x2F;ca.crt \</span><br><span class="line">--client-certificate&#x3D;&lt;ca_dir&gt;&#x2F;cs_client.crt \</span><br><span class="line">--clinet-key&#x3D;&lt;ca_dir&gt;&#x2F;cs_client.key</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://periky.github.io/2020/02/11/%E5%9F%BA%E4%BA%8Eopenssl%E7%9A%84kubernetes%E8%AF%81%E4%B9%A6/" data-id="ck6hf62wa000d2zjg96k1co5o" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes-openssl/" rel="tag">kubernetes, openssl</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E5%9B%9B):k8s%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">kubernetes机器部署(四):k8s集群部署</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/django/" rel="tag">django</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kubernetes-openssl/" rel="tag">kubernetes, openssl</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/django/" style="font-size: 10px;">django</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/kubernetes-openssl/" style="font-size: 10px;">kubernetes, openssl</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/02/">February 2020</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2020/02/11/%E5%9F%BA%E4%BA%8Eopenssl%E7%9A%84kubernetes%E8%AF%81%E4%B9%A6/">基于openssl的kubernetes证书</a>
+          </li>
+        
+          <li>
+            <a href="/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E5%9B%9B):k8s%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2/">kubernetes机器部署(四):k8s集群部署</a>
+          </li>
+        
+          <li>
+            <a href="/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%89):flannel/">kubernetes集群部署(三):flannel集群</a>
+          </li>
+        
+          <li>
+            <a href="/2020/02/08/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%BA%8C):etcd%E9%9B%86%E7%BE%A4/">kubernetes集群部署(二):etcd集群</a>
+          </li>
+        
+          <li>
+            <a href="/2020/02/05/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E4%B8%80):%E6%9C%BA%E5%99%A8%E5%88%9D%E5%A7%8B%E5%8C%96/">kubernetes集群部署(一):初始化</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 periky<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
