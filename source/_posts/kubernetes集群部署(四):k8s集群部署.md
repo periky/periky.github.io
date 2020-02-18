@@ -552,6 +552,8 @@ systemctl restart kubelet kube-proxy
 
 *kubelet配置文件: node-labels=node-role.kubernetes.io/master 更新为node-labels=node-role.kubernetes.io/node*
 
+*更新docker service文件,从flannel获取网桥信息*
+
 ```
 scp /etc/kubernetes/ssl/* root@node:/etc/kubernetes/ssl
 scp /etc/kubernetes/*.kubeconfig root@node:/etc/kubernetes
@@ -561,12 +563,18 @@ scp /usr/bin/kube-proxy root@node:/usr/bin
 scp /usr/bin/kubelet root@node:/usr/bin
 scp /lib/systemd/system/kubelet.service root@node:/lib/systemd/system
 scp /lib/systemd/system/kube-proxy.service root@node:/lib/systemd/system
+
+mkdir /etc/flannel
+scp /usr/bin/flanneld /usr/bin/mk-docker-opts.sh root@node:/usr/bin/
+scp /lib/systemd/system/flanneld.service root@node:/lib/systemd/system/
+scp /etc/flannel/flannel.conf root@node:/etc/flannel/
 ```
 
 **启动服务**
 
 ```
 systemctl daemon-reload
+mkdir /var/lib/kubelet
 systemctl enable kubelet
 systemctl start kubelet
 systemctl enable kube-proxy
