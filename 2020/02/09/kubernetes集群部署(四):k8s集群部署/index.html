@@ -15,7 +15,7 @@
 <meta property="og:description" content="获取二进制文件所有操作都在master结点上执行 获取安装文件 12345wget https:&#x2F;&#x2F;dl.k8s.io&#x2F;v1.15.5&#x2F;kubernetes-server-linux-amd64.tar.gztar xf kubernetes-server-linux-amd64.tar.gzcd kubernetes&#x2F;server&#x2F;bi">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2020-02-09T07:08:40.000Z">
-<meta property="article:modified_time" content="2020-02-10T12:30:05.673Z">
+<meta property="article:modified_time" content="2020-02-18T06:00:19.679Z">
 <meta property="article:author" content="periky">
 <meta property="article:tag" content="kubernetes">
 <meta name="twitter:card" content="summary">
@@ -209,16 +209,17 @@
 
 <h2 id="kubernetes-node部署"><a href="#kubernetes-node部署" class="headerlink" title="kubernetes node部署"></a>kubernetes node部署</h2><p><em>更新kube-proxy、kubelet配置文件, hostname-override是当前机器主机名</em></p>
 <p><em>kubelet配置文件: node-labels=node-role.kubernetes.io/master 更新为node-labels=node-role.kubernetes.io/node</em></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">scp &#x2F;etc&#x2F;kubernetes&#x2F;ssl&#x2F;* root@node:&#x2F;etc&#x2F;kubernetes&#x2F;ssl</span><br><span class="line">scp &#x2F;etc&#x2F;kubernetes&#x2F;*.kubeconfig root@node:&#x2F;etc&#x2F;kubernetes</span><br><span class="line">scp &#x2F;etc&#x2F;kubernetes&#x2F;kube-proxy.conf root@node:&#x2F;etc&#x2F;kubernetes</span><br><span class="line">scp &#x2F;etc&#x2F;kubernetes&#x2F;kubelet.conf root@node:&#x2F;etc&#x2F;kubernetes</span><br><span class="line">scp &#x2F;usr&#x2F;bin&#x2F;kube-proxy root@node:&#x2F;usr&#x2F;bin</span><br><span class="line">scp &#x2F;usr&#x2F;bin&#x2F;kubelet root@node:&#x2F;usr&#x2F;bin</span><br><span class="line">scp &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;kubelet.service root@node:&#x2F;lib&#x2F;systemd&#x2F;system</span><br><span class="line">scp &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;kube-proxy.service root@node:&#x2F;lib&#x2F;systemd&#x2F;system</span><br></pre></td></tr></table></figure>
+<p><em>更新docker service文件,从flannel获取网桥信息</em></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">scp &#x2F;etc&#x2F;kubernetes&#x2F;ssl&#x2F;* root@node:&#x2F;etc&#x2F;kubernetes&#x2F;ssl</span><br><span class="line">scp &#x2F;etc&#x2F;kubernetes&#x2F;*.kubeconfig root@node:&#x2F;etc&#x2F;kubernetes</span><br><span class="line">scp &#x2F;etc&#x2F;kubernetes&#x2F;kube-proxy.conf root@node:&#x2F;etc&#x2F;kubernetes</span><br><span class="line">scp &#x2F;etc&#x2F;kubernetes&#x2F;kubelet.conf root@node:&#x2F;etc&#x2F;kubernetes</span><br><span class="line">scp &#x2F;usr&#x2F;bin&#x2F;kube-proxy root@node:&#x2F;usr&#x2F;bin</span><br><span class="line">scp &#x2F;usr&#x2F;bin&#x2F;kubelet root@node:&#x2F;usr&#x2F;bin</span><br><span class="line">scp &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;kubelet.service root@node:&#x2F;lib&#x2F;systemd&#x2F;system</span><br><span class="line">scp &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;kube-proxy.service root@node:&#x2F;lib&#x2F;systemd&#x2F;system</span><br><span class="line"></span><br><span class="line">mkdir &#x2F;etc&#x2F;flannel</span><br><span class="line">scp &#x2F;usr&#x2F;bin&#x2F;flanneld &#x2F;usr&#x2F;bin&#x2F;mk-docker-opts.sh root@node:&#x2F;usr&#x2F;bin&#x2F;</span><br><span class="line">scp &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;flanneld.service root@node:&#x2F;lib&#x2F;systemd&#x2F;system&#x2F;</span><br><span class="line">scp &#x2F;etc&#x2F;flannel&#x2F;flannel.conf root@node:&#x2F;etc&#x2F;flannel&#x2F;</span><br></pre></td></tr></table></figure>
 
 <p><strong>启动服务</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">systemctl daemon-reload</span><br><span class="line">systemctl enable kubelet</span><br><span class="line">systemctl start kubelet</span><br><span class="line">systemctl enable kube-proxy</span><br><span class="line">systemctl start kube-proxy</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">systemctl daemon-reload</span><br><span class="line">mkdir &#x2F;var&#x2F;lib&#x2F;kubelet</span><br><span class="line">systemctl enable kubelet</span><br><span class="line">systemctl start kubelet</span><br><span class="line">systemctl enable kube-proxy</span><br><span class="line">systemctl start kube-proxy</span><br></pre></td></tr></table></figure>
 
 <h2 id="node结点加入集群"><a href="#node结点加入集群" class="headerlink" title="node结点加入集群"></a>node结点加入集群</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl get csr</span><br><span class="line"># 手动接收认证</span><br><span class="line">kubectl certificate approve $NAME</span><br></pre></td></tr></table></figure>
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://periky.github.io/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E5%9B%9B):k8s%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2/" data-id="ck6hfgrtu00080sjgb5o3f6y2" class="article-share-link">Share</a>
+      <a data-url="https://periky.github.io/2020/02/09/kubernetes%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2(%E5%9B%9B):k8s%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2/" data-id="ck6rj3nlt0008tjjg0x0001iq" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kubernetes/" rel="tag">kubernetes</a></li></ul>
@@ -270,7 +271,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/django/" style="font-size: 10px;">django</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/openssl/" style="font-size: 10px;">openssl</a> <a href="/tags/python/" style="font-size: 10px;">python</a> <a href="/tags/web-server/" style="font-size: 10px;">web server</a>
+      <a href="/tags/django/" style="font-size: 10px;">django</a> <a href="/tags/kubernetes/" style="font-size: 20px;">kubernetes</a> <a href="/tags/openssl/" style="font-size: 10px;">openssl</a> <a href="/tags/python/" style="font-size: 15px;">python</a> <a href="/tags/web-server/" style="font-size: 10px;">web server</a>
     </div>
   </div>
 
