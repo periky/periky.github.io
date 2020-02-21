@@ -32,6 +32,7 @@ ETCD_DATA_DIR="/var/lib/etcd"
 ETCD_LISTEN_PEER_URLS="http://${node_ip}:2380"
 ETCD_LISTEN_CLIENT_URLS="http://${node_ip}:2379"
 ETCD_ADVERTISE_CLIENT_URLS="http://${node_ip}:2379"
+EOF
 ```
 
 
@@ -52,7 +53,7 @@ ExecStart=/usr/bin/etcd \
 --data-dir=${ETCD_DATA_DIR} \
 --listen-peer-urls=${ETCD_LISTEN_PEER_URLS} \
 --listen-client-urls=${ETCD_LISTEN_CLIENT_URLS},http://127.0.0.1:2379 \
---advertise-client-urls=${ETCD_ADVERTISE_CLIENT_URLS} \
+--advertise-client-urls=${ETCD_ADVERTISE_CLIENT_URLS}
 Restart=on-failure
 LimitNOFILE=65536
 [Install]
@@ -234,6 +235,8 @@ cfssl gencert -ca=ca.pem \
 --trusted-ca-file=/etc/etcd/ssl/ca.pem \
 --peer-trusted-ca-file=/etc/etcd/ssl/ca.pem
 ```
+
+编辑文件,`vim /etc/etcd/etcd.conf`, 更新协议, http -> https
 
 
 ## 服务健康检测

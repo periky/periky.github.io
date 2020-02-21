@@ -21,6 +21,164 @@ cp kube-scheduler kubelet kube-proxy  /usr/bin
 
 <!--more-->
 
+
+## TLS Bootstrapping Token
+
+```
+# head -c 16 /dev/urandom | od -An -t x | tr -d ' '
+449bbeb0ea7e50f321087a123a509a19
+
+# vim /cloud/k8s/kubernetes/cfg/token.csv
+449bbeb0ea7e50f321087a123a509a19,kubelet-bootstrap,10001,"system:kubelet-bootstrap"
+```
+
+
+## kubernetes机器提供HTTPS服务
+
+**安装配置CFSSL**
+
+*创建证书工具,用于提供https服务*
+
+```
+wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+wget https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+wget https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64
+chmod +x cfssl_linux-amd64 cfssljson_linux-amd64 cfssl-certinfo_linux-amd64
+mv cfssl_linux-amd64 /usr/local/bin/cfssl
+mv cfssljson_linux-amd64 /usr/local/bin/cfssljson
+mv cfssl-certinfo_linux-amd64 /usr/bin/cfssl-certinfo
+```
+
+
+**cs根证书**
+
+```
+cat << EOF | tee /etc/kubernetes/ssl/ca-config.json
+{
+  "signing": {
+    "default": {
+      "expiry": "87600h"
+    },
+    "profiles": {
+      "kubernetes": {
+         "expiry": "87600h",
+         "usages": [
+            "signing",
+            "key encipherment",
+            "server auth",
+            "client auth"
+        ]
+      }
+    }
+  }
+}
+EOF
+```
+
+```
+cat << EOF | tee /etc/kubernetes/ssl/ca-csr.json
+{
+    "CN": "kubernetes",
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "Shanghai",
+            "ST": "Shanghai",
+            "O": "k8s",
+            "OU": "System"
+        }
+    ]
+}
+EOF
+```
+
+```
+# 生成根证书
+cd /etc/kubernetes/ssl
+cfssl gencert -initca /etc/kubernetes/ssl/ca-csr.json | cfssljson -bare ca -
+```
+
+**kube-apiserver证书**
+
+```
+# master结点主机名
+cat << EOF | tee /etc/kubernetes/ssl/server-csr.json
+{
+    "CN": "kubernetes",
+    "hosts": [
+        "127.0.0.1",
+        "${master_ip}",
+        "10.40.0.1",
+        "kubernetes",
+        "kubernetes.default",
+        "kubernetes.default.svc",
+        "kubernetes.default.svc.cluster",
+        "kubernetes.default.svc.cluster.local"
+    ],
+    "key": {
+        "algo": "rsa",
+        "size": 2048
+    },
+    "names": [
+        {
+            "C": "CN",
+            "L": "Shanghai",
+            "ST": "Shanghai",
+            "O": "k8s",
+            "OU": "System"
+        }
+    ]
+}
+EOF
+```
+
+```
+# 生成apiserver的证书
+cd /etc/kubernetes/ssl/
+cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem -ca-key=/etc/kubernetes/ssl/ca-key.pem -config=/etc/kubernetes/ssl/ca-config.json -profile=kubernetes \
+    /etc/kubernetes/ssl/server-csr.json | cfssljson -bare server
+```
+
+
+**kube-proxy证书**
+
+```
+cat << EOF | tee /etc/kubernetes/ssl/kube-proxy-csr.json
+{
+  "CN": "system:kube-proxy",
+  "hosts": [],
+  "key": {
+    "algo": "rsa",
+    "size": 2048
+  },
+  "names": [
+    {
+      "C": "CN",
+      "L": "Shanghai",
+      "ST": "Shanghai",
+      "O": "k8s",
+      "OU": "System"
+    }
+  ]
+}
+EOF
+```
+
+```
+# 生成kube-proxy证书
+cd /etc/kubernetes/ssl/
+cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem \
+-ca-key=/etc/kubernetes/ssl/ca-key.pem \
+-config=/etc/kubernetes/ssl/ca-config.json \
+-profile=kubernetes /etc/kubernetes/ssl/kube-proxy-csr.json \
+| cfssljson -bare kube-proxy
+```
+
+
 ## kube-apiserver服务
 
 **配置文件**
@@ -30,7 +188,7 @@ cp kube-scheduler kubelet kube-proxy  /usr/bin
 KUBE_APISERVER_OPTS="--logtostderr=false \
 --log-dir=/var/log/kubernetes \
 --v=4 \
---etcd-servers=http://${master_ip}:2379 \
+--etcd-servers=http://${etcd_cluster_ip}:2379 \
 --bind-address=${master_ip} \
 --secure-port=6443 \
 --advertise-address=${master_ip} \
@@ -40,7 +198,11 @@ KUBE_APISERVER_OPTS="--logtostderr=false \
 --authorization-mode=RBAC,Node \
 --enable-bootstrap-token-auth \
 --token-auth-file=/etc/kubernetes/token.csv \
---service-node-port-range=30000-50000"
+--service-node-port-range=30000-50000 \
+--tls-cert-file=/etc/kubernetes/ssl/server.pem  \
+--tls-private-key-file=/etc/kubernetes/ssl/server-key.pem \
+--client-ca-file=/etc/kubernetes/ssl/ca.pem \
+--service-account-key-file=/etc/kubernetes/ssl/ca-key.pem"
 ```
 
 **systemctl service文件**
@@ -83,7 +245,11 @@ KUBE_CONTROLLER_MANAGER_OPTS="--logtostderr=false \
 --leader-elect=true \
 --address=127.0.0.1 \
 --service-cluster-ip-range=10.40.0.0/24 \
---cluster-name=kubernetes"
+--cluster-name=kubernetes \
+--cluster-signing-cert-file=/etc/kubernetes/ssl/ca.pem \
+--cluster-signing-key-file=/etc/kubernetes/ssl/ca-key.pem  \
+--root-ca-file=/etc/kubernetes/ssl/ca.pem \
+--service-account-private-key-file=/etc/kubernetes/ssl/ca-key.pem"
 ```
 
 **systemctl service文件**
@@ -148,25 +314,17 @@ systemctl start kube-scheduler
 ```
 
 
-## kubernetes Token
 
-**TLS Bootstrapping Token**
+## 创建 kubelet bootstrap kubeconfig 文件
 
-```
-# head -c 16 /dev/urandom | od -An -t x | tr -d ' '
-449bbeb0ea7e50f321087a123a509a19
-
-# vim /cloud/k8s/kubernetes/cfg/token.csv
-449bbeb0ea7e50f321087a123a509a19,kubelet-bootstrap,10001,"system:kubelet-bootstrap"
-```
-
-**kube-bootstrap.kubeconfig**
+**kubeconfig**
 
 ```
 BOOTSTRAP_TOKEN=449bbeb0ea7e50f321087a123a509a19
 KUBE_APISERVER="https://${master_ip}:6443"
 # 设置集群参数
 kubectl config set-cluster kubernetes \
+  --certificate-authority=/etc/kubernetes/ssl/ca.pem \
   --embed-certs=true \
   --server=${KUBE_APISERVER} \
   --kubeconfig=bootstrap.kubeconfig
@@ -181,19 +339,16 @@ kubectl config set-context default \
   --kubeconfig=bootstrap.kubeconfig
 # 设置默认上下文
 kubectl config use-context default --kubeconfig=bootstrap.kubeconfig
-```
 
-**kube-proxy.kubeconfig**
-
-```
-BOOTSTRAP_TOKEN=449bbeb0ea7e50f321087a123a509a19
-KUBE_APISERVER="https://${master_ip}:6443"
 # 创建kube-proxy kubeconfig文件
 kubectl config set-cluster kubernetes \
+  --certificate-authority=/etc/kubernetes/ssl/ca.pem \
   --embed-certs=true \
   --server=${KUBE_APISERVER} \
   --kubeconfig=kube-proxy.kubeconfig
 kubectl config set-credentials kube-proxy \
+  --client-certificate=/etc/kubernetes/ssl/kube-proxy.pem \
+  --client-key=/etc/kubernetes/ssl/kube-proxy-key.pem \
   --embed-certs=true \
   --kubeconfig=kube-proxy.kubeconfig
 kubectl config set-context default \
@@ -204,16 +359,8 @@ kubectl config use-context default --kubeconfig=kube-proxy.kubeconfig
 ```
 
 
-**绑定kubelet-bootstrap用户到集群**
-
-```
-kubectl create clusterrolebinding kubelet-bootstrap \
-  --clusterrole=system:node-bootstrapper \
-  --user=kubelet-bootstrap
-```
-
-
 ## kubelet服务
+
 
 **配置文件**
 
@@ -230,11 +377,9 @@ KUBELET_OPTS="--logtostderr=false \
 --bootstrap-kubeconfig=/etc/kubernetes/bootstrap.kubeconfig \
 --config=/etc/kubernetes/kubelet.config \
 --cert-dir=/etc/kubernetes/ssl \
---cluster-dns=10.40.0.5 \
---cluster-domain=cluster.domain \
---pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/\
-google-containers/pause-amd64:3.0"
+--pod-infra-container-image=registry.cn-hangzhou.aliyuncs.com/google-containers/pause-amd64:3.0"
 ```
+
 
 **kubelet配置模板**
 
@@ -318,6 +463,15 @@ systemctl start kube-proxy
 ```
 
 
+## 绑定kubelet-bootstrap用户到集群
+
+```
+kubectl create clusterrolebinding kubelet-bootstrap \
+  --clusterrole=system:node-bootstrapper \
+  --user=kubelet-bootstrap
+```
+
+
 ## CoreDns
 
 ```
@@ -327,224 +481,6 @@ yum -y install jq
 ./deploy.sh -r 10.40.0.0/24 -i 10.40.0.5 -d cluster.local |kubectl apply -f -
 ```
 
-
-## kubernetes机器提供HTTPS服务
-
-**安装配置CFSSL**
-
-*创建证书工具,用于提供https服务*
-
-```
-wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
-wget https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
-wget https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64
-chmod +x cfssl_linux-amd64 cfssljson_linux-amd64 cfssl-certinfo_linux-amd64
-mv cfssl_linux-amd64 /usr/local/bin/cfssl
-mv cfssljson_linux-amd64 /usr/local/bin/cfssljson
-mv cfssl-certinfo_linux-amd64 /usr/bin/cfssl-certinfo
-```
-
-
-**cs根证书**
-
-```
-cat << EOF | tee /etc/kubernetes/ssl/ca-config.json
-{
-  "signing": {
-    "default": {
-      "expiry": "87600h"
-    },
-    "profiles": {
-      "kubernetes": {
-         "expiry": "87600h",
-         "usages": [
-            "signing",
-            "key encipherment",
-            "server auth",
-            "client auth"
-        ]
-      }
-    }
-  }
-}
-EOF
-```
-
-```
-cat << EOF | tee /etc/kubernetes/ssl/ca-csr.json
-{
-    "CN": "kubernetes",
-    "key": {
-        "algo": "rsa",
-        "size": 2048
-    },
-    "names": [
-        {
-            "C": "CN",
-            "L": "Shanghai",
-            "ST": "Shanghai",
-            "O": "k8s",
-            "OU": "System"
-        }
-    ]
-}
-EOF
-```
-
-```
-# 生成根证书
-cd /etc/kubernetes/ca
-cfssl gencert -initca /etc/kubernetes/ssl/ca-csr.json | cfssljson -bare ca -
-```
-
-**kube-apiserver证书**
-
-```
-# master结点主机名
-MASTER_HOSTNAME=$(/bin/hostname)
-CLUSTER_KUBERNETES_SVC_IP=$(kubectl get svc kubernetes  | \
-    awk '{print $3}' | tail -n1)
-cat << EOF | tee /etc/kubernetes/ssl/server-csr.json
-{
-    "CN": "kubernetes",
-    "hosts": [
-        "127.0.0.1",
-        "$MASTER_HOSTNAME", # master结点主机名
-        "$CLUSTER_KUBERNETES_SVC_IP", # 
-        "kubernetes",
-        "kubernetes.default",
-        "kubernetes.default.svc",
-        "kubernetes.default.svc.cluster",
-        "kubernetes.default.svc.cluster.local"
-    ],
-    "key": {
-        "algo": "rsa",
-        "size": 2048
-    },
-    "names": [
-        {
-            "C": "CN",
-            "L": "Shanghai",
-            "ST": "Shanghai",
-            "O": "k8s",
-            "OU": "System"
-        }
-    ]
-}
-EOF
-```
-
-```
-# 生成apiserver的证书
-cd /etc/kubernetes/ssl/
-cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem -ca-key=/etc/kubernetes/ssl/ \
-    ca-key.pem -config=/etc/kubernetes/ssl/ca-config.json -profile=kubernetes \
-    /etc/kubernetes/ssl/server-csr.json | cfssljson -bare server
-```
-
-**kube-apiserver的配置文件**
-
-*添加以下配置信息到apiserver的配置文件中,使apiserver提供https服务*
-
-```
---tls-cert-file=/etc/kubernetes/ssl/server.pem  \
---tls-private-key-file=/etc/kubernetes/ssl/server-key.pem \
---client-ca-file=/etc/kubernetes/ssl/ca.pem \
---service-account-key-file=/etc/kubernetes/ssl/ca-key.pem
-```
-
-**kube-controller-manager的配置文件**
-
-*添加以下配置信息到kube-controller-manager的配置文件中*
-
-```
---cluster-signing-cert-file=/etc/kubernetes/ssl/ca.pem \
---cluster-signing-key-file=/etc/kubernetes/ssl/ca-key.pem  \
---root-ca-file=/etc/kubernetes/ssl/ca.pem \
---service-account-private-key-file=/etc/kubernetes/ssl/ca-key.pem"
-```
-
-**kube-proxy证书**
-
-```
-cat << EOF | tee /etc/kubernetes/ssl/kube-proxy-csr.json
-{
-  "CN": "system:kube-proxy",
-  "hosts": [],
-  "key": {
-    "algo": "rsa",
-    "size": 2048
-  },
-  "names": [
-    {
-      "C": "CN",
-      "L": "Shanghai",
-      "ST": "Shanghai",
-      "O": "k8s",
-      "OU": "System"
-    }
-  ]
-}
-EOF
-```
-
-```
-# 生成kube-proxy证书
-cd /etc/kubernetes/ssl/
-cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem \
--ca-key=/etc/kubernetes/ssl/ca-key.pem \
--config=/etc/kubernetes/ssl/ca-config.json \
--profile=kubernetes /etc/kubernetes/ssl/kube-proxy-csr.json \
-| cfssljson -bare kube-proxy
-```
-
-**更新kubeconfig脚本**
-
-```
-BOOTSTRAP_TOKEN=449bbeb0ea7e50f321087a123a509a19
-KUBE_APISERVER="https://${master_ip}:6443"
-# 设置集群参数
-kubectl config set-cluster kubernetes \
-  --certificate-authority=/etc/kubernetes/ssl/ca.pem \
-  --embed-certs=true \
-  --server=${KUBE_APISERVER} \
-  --kubeconfig=bootstrap.kubeconfig
-# 设置客户端认证参数
-kubectl config set-credentials kubelet-bootstrap \
-  --token=${BOOTSTRAP_TOKEN} \
-  --kubeconfig=bootstrap.kubeconfig
-# 设置上下文参数
-kubectl config set-context default \
-  --cluster=kubernetes \
-  --user=kubelet-bootstrap \
-  --kubeconfig=bootstrap.kubeconfig
-# 设置默认上下文
-kubectl config use-context default --kubeconfig=bootstrap.kubeconfig
-
-# 创建kube-proxy kubeconfig文件
-kubectl config set-cluster kubernetes \
-  --certificate-authority=/etc/kubernetes/ssl/ca.pem \
-  --embed-certs=true \
-  --server=${KUBE_APISERVER} \
-  --kubeconfig=kube-proxy.kubeconfig
-kubectl config set-credentials kube-proxy \
-  --client-certificate=/etc/kubernetes/ssl/kube-proxy.pem \
-  --client-key=/etc/kubernetes/ssl/kube-proxy-key.pem \
-  --embed-certs=true \
-  --kubeconfig=kube-proxy.kubeconfig
-kubectl config set-context default \
-  --cluster=kubernetes \
-  --user=kube-proxy \
-  --kubeconfig=kube-proxy.kubeconfig
-kubectl config use-context default --kubeconfig=kube-proxy.kubeconfig
-```
-
-**更新node结点kubeconfig文件**
-
-```
-scp /etc/kubernetes/*.kubeconfig root@node:/etc/kubernetes
-systemctl restart kubelet kube-proxy
-```
 
 ## kubernetes node部署
 

@@ -64,6 +64,6 @@ ExecStart命令更新: /usr/bin/dockerd $DOCKER_NETWORK_OPTIONS $ARGS
 etcdctl \
 --ca-file=/etc/etcd/ssl/ca.pem --cert-file=/etc/etcd/ssl/server.pem \
 --key-file=/etc/etcd/ssl/server-key.pem \
---endpoints="https://10.0.2.15:2379 \
+--endpoints="https://10.0.2.15:2379" \
 set /coreos.com/network/config  '{ "Network": "172.20.0.0/16", "Backend": {"Type": "vxlan"}}'
 ```
